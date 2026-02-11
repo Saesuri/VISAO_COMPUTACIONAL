@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Logística - Visão Computacional</title>
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <header>
+        <h1>🖥️ Monitor de Logística em Tempo Real 🖥️</h1>
+        <div id="status-conexao">Iniciando sistemas...</div>
+    </header>
+
+    <main>
+        <div class="monitor-container">
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="overlay"></canvas>
+            <div class="scan-line"></div>
+        </div>  
+
+        <div class="dashboard-stats">
+            <div class="stat-card red"><span class="label">Vermelhos</span><span id="count-red" class="value">0</span></div>
+            <div class="stat-card green"><span class="label">Verdes</span><span id="count-green" class="value">0</span></div>
+            <div class="stat-card yellow"><span class="label">Amarelos</span><span id="count-yellow" class="value">0</span></div>
+            <div class="stat-card blue"><span class="label">Azuis</span><span id="count-blue" class="value">0</span></div>
+            <div class="stat-card pink"><span class="label">Rosas</span><span id="count-pink" class="value">0</span></div>
+            <div class="stat-card purple"><span class="label">Roxos</span><span id="count-purple" class="value">0</span></div>
+            <div class="stat-card orange"><span class="label">Laranjas</span><span id="count-orange" class="value">0</span></div>
+            <div class="stat-card total"><span class="label">Total</span><span id="count-total" class="value">0</span></div>
+        </div>
+
+        <section class="log-section">
+            <ul id="lista-eventos" class="grid-logistica">
+                </ul>
+        </section>
+    </main>
+    <div class="sonic">
+        <img src="sonic.gif" alt="sonic">
+    </div>
+
+    <div class ="tails">
+        <img src="tails.gif" alt="tails">
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

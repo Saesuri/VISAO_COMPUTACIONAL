@@ -1,0 +1,146 @@
+/* Configurações Gerais */
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #5997ca; 
+    color: #eee;
+    font-family: 'Quicksand', sans-serif;
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+    justify-content: flex-start; 
+    min-height: 100vh;
+    padding: 40px 20px;
+}
+
+/* Títulos e Status */
+h1 {
+    margin-bottom: 10px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(0, 26, 255, 0.3);
+}
+
+#status-conexao {
+    margin-bottom: 30px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+/* ~~~~ PAINEL DE CONTADORES (ESTATÍSTICAS) ~~~~ */
+.dashboard-stats {
+    display: grid;
+    /* 4 colunas: como tem 8 cards, vai se criar 2 linhas automaticamente */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 15px;
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #28278a;
+    border: 1px solid #f7f5f5;
+    padding: 15px;
+    text-align: center;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    
+    min-height: 110px; 
+    justify-content: space-between; 
+}
+
+.stat-card .label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #f8f8f8;
+    line-height: 1.2;
+}
+
+.stat-card .value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: auto; 
+    padding-bottom: 5px;
+    line-height: 1; 
+}
+
+/* ~~~~ CORES DOS CONTADORES ~~~~ */
+.red .value { color: #cf0101; border-bottom: 2px solid #cf0101; }
+.green .value { color: #01ad01; border-bottom: 2px solid #01ad01; }
+.yellow .value { color: #ffff09; border-bottom: 2px solid #ffff09; }
+.blue .value { color: #027ffc; border-bottom: 2px solid #4da6ff; }
+.pink .value { color: #fc56a9; border-bottom: 2px solid #fc56a9; }
+.purple .value { color: #b366ff; border-bottom: 2px solid #b366ff; }
+.orange .value { color: #ff9933; border-bottom: 2px solid #ff9933; }
+.total .value { color: #0c0c0c; border-bottom: 2px solid #0c0c0c; }
+
+/* ~~~~ MONITOR DE VISÃO COMPUTACIONAL ~~~~ */
+.monitor-container {
+    position: relative;
+    border: 3px solid rgb(255, 0, 0);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+    background-color: #f8f3f3;
+    overflow: hidden;
+    margin-bottom: 40px;
+    width: fit-content;
+}
+
+video {
+    width: 640px;
+    height: 480px;
+    display: block;
+    filter: brightness(1.1) contrast(1.2) sepia(0.2) hue-rotate(80deg);
+}
+
+#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes scan {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+
+/* ~~~~ LISTA DE EVENTOS (LOGS) ~~~~ */
+.log-section {
+    width: 100%;
+    max-width: 800px;
+}
+
+.grid-logistica li {
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    font-family: 'Courier New', Courier, monospace;
+    color: rgb(0, 47, 255);
+    list-style: none;
+}
+
+.tails {
+    position: fixed;
+    margin-right: 1000px; 
+    margin-left: auto; 
+    width: 100px;
+    top: -10px;
+    animation: bounce 2s infinite;
+}
+.sonic {
+    position: fixed;
+    margin-right: auto;
+    margin-left: 1000px;
+    width: 100px;
+    bottom: 20px; 
+    animation: bounce 2s infinite;
+}
+
+
+
