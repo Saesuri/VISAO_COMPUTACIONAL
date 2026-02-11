@@ -5,16 +5,21 @@ import numpy as np
 import time
 
 cap = cv2.VideoCapture(0)
-fgbg = cv2.bgsegm.createBackgroundSubtractorMOG()
-fgbg2 = cv2.createBackgroundSubtractorMOG2()
+# fgbg = cv2.bgsegm.createBackgroundSubtractorMOG()
+fgbg2 = cv2.createBackgroundSubtractorMOG2(
+    history=500, 
+    varThreshold=16, 
+    detectShadows=True)
 
 pTime = 0
+
+x1, y1, x2, y2 = 100, 100, 400, 400
 
 while True:
     ret, frame = cap.read()
     flipped_frame = cv2.flip(frame, 1)
 
-    fgmask = fgbg.apply(flipped_frame)
+    # fgmask = fgbg.apply(flipped_frame)
     fgmask2 = fgbg2.apply(flipped_frame) # com MOG 2
 
     hsv = cv2.cvtColor(flipped_frame, cv2.COLOR_BGR2HSV)
@@ -63,14 +68,14 @@ while True:
     # cv2.imshow('mascara azul', blue_mask)
     # cv2.imshow('mascara vermelha', red_mask)
 
-    fgmask_color = cv2.cvtColor(fgmask, cv2.COLOR_GRAY2BGR)
+    # fgmask_color = cv2.cvtColor(fgmask, cv2.COLOR_GRAY2BGR)
     fgmask2_color = cv2.cvtColor(fgmask2, cv2.COLOR_GRAY2BGR)
 
     azul_x_vermelho = cv2.hconcat([blue_mask, red_mask])
-    webXmask = cv2.hconcat([flipped_frame, fgmask_color])
+    # webXmask = cv2.hconcat([flipped_frame, fgmask_color])
     webXmask2 = cv2.hconcat([flipped_frame, fgmask2_color])
     cv2.imshow("webXmaska", webXmask2)
-    cv2.imshow("webXmask", webXmask)
+    # cv2.imshow("webXmask", webXmask)
 
 
 cap.release()
