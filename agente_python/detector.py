@@ -1,16 +1,15 @@
 import cv2
 import numpy as np
-import requests 
+import requests
 
-API_URL = "http://localhost:5000/nomepravercompriscila" # ver com priscila 
+API_URL = "http://localhost:5105/api/eventos"
 
 cap = cv2.VideoCapture(0)
 bg = cv2.createBackgroundSubtractorMOG2(
-    history=500, 
-    varThreshold=16, 
+    history=500,
+    varThreshold=16,
     detectShadows=True
 )
-
 
 red_detected_before = False
 
@@ -52,13 +51,14 @@ while True:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     if red_detected_now and not red_detected_before:
-        requests.post(API_URL, json={"color": "red"}) # ver esse json
+        requests.post(API_URL, json={"cor": "vermelho",
+                                     "cameraId": "CAM_VICTOR.IA"
+                                     })
     red_detected_before = red_detected_now
 
     fg_mask_bgr = cv2.cvtColor(fg_mask, cv2.COLOR_GRAY2BGR)
-    # test = cv2.hconcat([frame, fg_mask_bgr])
     cv2.imshow("test", frame)
-    # cv2.imshow("test", fg_mask)
+    # criar duocolor com cv2.hconcat([])
 
     if cv2.waitKey(1) == 27:
         break
