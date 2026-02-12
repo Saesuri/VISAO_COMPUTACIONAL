@@ -12,6 +12,7 @@ bg = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=16, detectShad
 
 red_detected_before = False
 green_detected_before = False
+
 red_detected_now = False
 green_detected_now = False
 
@@ -44,13 +45,20 @@ def generate_frames():
             lower_red = np.array([0,120,70])
             upper_red = np.array([10,255,255])
 
+            lower_verde = np.array([35, 100, 100])
+            upper_verde = np.array([85, 255, 255])  
+
             color_mask = cv2.inRange(hsv, lower_red, upper_red)
+            color_mask_verde = cv2.inRange(hsv, lower_verde, upper_verde)
 
             red_detected_now = False
             green_detected_now = False
 
 
             if cv2.countNonZero(color_mask) > 200:
+                red_detected_now = True
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            elif cv2.countNonZero(color_mask_verde) > 200:
                 red_detected_now = True
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
