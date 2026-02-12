@@ -1,67 +1,86 @@
 import cv2
 import numpy as np
 import requests
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+
+app = FastAPI()
 
 API_URL = "http://localhost:5105/api/eventos"
-
 cap = cv2.VideoCapture(0)
-bg = cv2.createBackgroundSubtractorMOG2(
-    history=500,
-    varThreshold=16,
-    detectShadows=True
-)
+bg = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=16, detectShadows=True)
 
 red_detected_before = False
+green_detected_before = False
+red_detected_now = False
+green_detected_now = False
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    fg_mask =  bg.apply(frame)
-
-    kernel = np.ones((5,5), np.uint8)
-    fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel)
-
-    contours, _ = cv2.findContours(
-        fg_mask,
-        cv2.RETR_EXTERNAL,
-        cv2.CHAIN_APPROX_SIMPLE
-    )
-
-    for c in contours:
-        if cv2.contourArea(c) < 500:
+def generate_frames():
+    while True:
+        ret, frame = cap.read()
+        if not ret:
             continue
 
-        x, y, w, h = cv2.boundingRect(c)
-        roi = frame[y:y+h, x:x+w]
+        fg_mask =  bg.apply(frame)
 
-        hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        kernel = np.ones((5,5), np.uint8)
+        fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel)
 
-        lower_red = np.array([0,120,70])
-        upper_red = np.array([10,255,255])
+        contours, _ = cv2.findContours(
+            fg_mask,
+            cv2.RETR_EXTERNAL,
+            cv2.CHAIN_APPROX_SIMPLE
+        )
 
-        color_mask = cv2.inRange(hsv, lower_red, upper_red)
+        for c in contours:
+            if cv2.contourArea(c) < 500:
+                continue
 
-        red_detected_now = False
+            x, y, w, h = cv2.boundingRect(c)
+            roi = frame[y:y+h, x:x+w]
+
+            hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+
+            lower_red = np.array([0,120,70])
+            upper_red = np.array([10,255,255])
+
+            color_mask = cv2.inRange(hsv, lower_red, upper_red)
+
+            red_detected_now = False
+            green_detected_now = False
 
 
-        if cv2.countNonZero(color_mask) > 200:
-            red_detected_now = True
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            if cv2.countNonZero(color_mask) > 200:
+                red_detected_now = True
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    if red_detected_now and not red_detected_before:
-        requests.post(API_URL, json={"cor": "vermelho",
-                                     "cameraId": "CAM_VICTOR.IA"
-                                     })
-    red_detected_before = red_detected_now
+        if red_detected_now and not red_detected_before:
+            requests.post(API_URL, json={"cor": "vermelho",
+                                        "cameraId": "CAM_VICTOR.IA"
+                                        })
+        red_detected_before = red_detected_now
 
-    fg_mask_bgr = cv2.cvtColor(fg_mask, cv2.COLOR_GRAY2BGR)
-    cv2.imshow("test", frame)
-    # criar duocolor com cv2.hconcat([])
+        if green_detected_now and not green_detected_before:
+            requests.post(API_URL, json={"cor": "verde",
+                                        "cameraId": "CAM_VICTOR.IA"
+                                        }, timeout=0.5)
+        green_detected_before = green_detected_now
 
-    if cv2.waitKey(1) == 27:
-        break
+        fg_mask_bgr = cv2.cvtColor(fg_mask, cv2.COLOR_GRAY2BGR)
+        cv2.imshow("test", frame)
 
-cap.release()
-cv2.destroyAllWindows()
+        if cv2.waitKey(1) == 27:
+            break
+
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame_bytes = buffer.tobytes()
+
+        yield (b'--frame\r\n'   
+            b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        
+    # cap.release() 
+    # cv2.destroyAllWindows()
+
+@app.get('/webcam')
+def webcam():
+    return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
