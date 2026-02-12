@@ -2918,19 +2918,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\victo\\.nuget\\packages\\": {}
+    "C:\\Users\\joaop\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\victo\\VISAO_COMPUTACIONAL\\middleware\\middleware.csproj",
+      "projectUniqueName": "C:\\Users\\joaop\\OneDrive\\Desktop\\VISAO_COMPUTACIONAL\\middleware\\middleware.csproj",
       "projectName": "middleware",
-      "projectPath": "C:\\Users\\victo\\VISAO_COMPUTACIONAL\\middleware\\middleware.csproj",
-      "packagesPath": "C:\\Users\\victo\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\victo\\VISAO_COMPUTACIONAL\\middleware\\obj\\",
+      "projectPath": "C:\\Users\\joaop\\OneDrive\\Desktop\\VISAO_COMPUTACIONAL\\middleware\\middleware.csproj",
+      "packagesPath": "C:\\Users\\joaop\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\joaop\\OneDrive\\Desktop\\VISAO_COMPUTACIONAL\\middleware\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\victo\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\joaop\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [

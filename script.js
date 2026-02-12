@@ -1,4 +1,5 @@
 const urlAPI = 'http://localhost:5105/api/eventos';
+const urlAPIContagem = 'http://localhost:5105/api/contagem/resumo24h';
 
 //  CONTADORES DE OBJETOS ATUALIZADOS
 
@@ -65,7 +66,12 @@ async function buscarEventos() {
             container.innerHTML = ''; // Limpa a lista para atualizar
             eventos.forEach(evento => {
                 const item = document.createElement('li');            
-                item.textContent = `${evento.descricao} - ${new Date(evento.data).toLocaleString('pt-BR')}`;
+                // Ajuste para propriedades do C# (PascalCase vira camelCase no JSON por padrão, mas vamos garantir)
+                // O modelo C# tem Cor e DataHora. Serializador padrão do ASP.NET Core usa camelCase.
+                const descricao = evento.cor || evento.Cor;
+                const data = evento.dataHora || evento.DataHora;
+                
+                item.textContent = `Detecção ${descricao} - ${new Date(data).toLocaleString('pt-BR')}`;
                 container.appendChild(item);
             });
         }
@@ -81,22 +87,47 @@ async function buscarEventos() {
     }
 }
 
-// ~~~~ FUNÇÃO PARA REGISTRAR DETECÇÕES ~~~~
-function registrarDeteccao(cor) {
-    // Se a cor existir no nosso objeto, incrementa ela e o total
-    if (contagemObjetos.hasOwnProperty(cor)) {
-        contagemObjetos[cor]++;
-        contagemObjetos.total++;
+// ~~ FUNÇÃO DE BUSCA DE CONTAGEM ~~~~
+async function buscarContagem() {
+    try {
+        const resposta = await fetch(urlAPIContagem);
+        if (!resposta.ok) throw new Error("Falha na requisição de contagem");
+
+        const estatisticas = await resposta.json();
+        
+        // Resetar contagem antes de atualizar
+        Object.keys(contagemObjetos).forEach(key => contagemObjetos[key] = 0);
+        
+        // Atualizar com dados da API
+        let totalGeral = 0;
+        estatisticas.forEach(stat => {
+            // stat.categoria e stat.total
+            const cor = (stat.categoria || stat.Categoria).toLowerCase();
+            const qtd = stat.total || stat.Total;
+            
+            if (contagemObjetos.hasOwnProperty(cor)) {
+                contagemObjetos[cor] = qtd;
+            }
+            totalGeral += qtd;
+        });
+        contagemObjetos.total = totalGeral;
+        
         atualizarPainel();
-    } else {
-        console.warn(`A cor "${cor}" não está configurada nos contadores.`);
+
+    } catch (erro) {
+        console.error('Erro ao buscar contagem:', erro);
     }
 }
+
 
 // ~~~~ INICIALIZAÇÃO ~~~~
 iniciarCamera(); 
 buscarEventos();
-atualizarPainel(); // Define os valores iniciais (0) na tela
+buscarContagem();
+atualizarPainel(); 
 
 // Atualiza os dados da API a cada 3 segundos
-setInterval(buscarEventos, 3000);
+setInterval(() => {
+    buscarEventos();
+    buscarContagem();
+}, 3000);
