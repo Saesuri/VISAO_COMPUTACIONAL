@@ -1,11 +1,6 @@
 import cv2
 import numpy as np
 import requests
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
-
-app = FastAPI()
-
 API_URL = "http://localhost:5105/api/eventos"
 cap = cv2.VideoCapture(0)
 bg = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=16, detectShadows=True)
@@ -16,79 +11,66 @@ green_detected_before = False
 red_detected_now = False
 green_detected_now = False
 
-def generate_frames():
-    while True:
-        ret, frame = cap.read()
-        if not ret:
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    fg_mask =  bg.apply(frame)
+
+    kernel = np.ones((5,5), np.uint8)
+    fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel)
+
+    contours, _ = cv2.findContours(
+        fg_mask,
+        cv2.RETR_EXTERNAL,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    for c in contours:
+        if cv2.contourArea(c) < 500:
             continue
 
-        fg_mask =  bg.apply(frame)
+        x, y, w, h = cv2.boundingRect(c)
+        roi = frame[y:y+h, x:x+w]
 
-        kernel = np.ones((5,5), np.uint8)
-        fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_OPEN, kernel)
+        hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
 
-        contours, _ = cv2.findContours(
-            fg_mask,
-            cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE
-        )
+        lower_red = np.array([0, 120, 70])
+        upper_red = np.array([10, 255, 255])
+        lower_verde = np.array([35, 100, 100])
+        upper_verde = np.array([85, 255, 255])
 
-        for c in contours:
-            if cv2.contourArea(c) < 500:
-                continue
+        mask_red = cv2.inRange(hsv, lower_red, upper_red)
+        mask_green = cv2.inRange(hsv, lower_verde, upper_verde)
 
-            x, y, w, h = cv2.boundingRect(c)
-            roi = frame[y:y+h, x:x+w]
+        if cv2.countNonZero(mask_red) > 200:
+            red_detected_now = True
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            cv2.putText(frame, "Alerta: Vermelho", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,255), 2)
 
-            hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        if cv2.countNonZero(mask_green) > 200:
+            green_detected_now = True
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(frame, "Status: Verde", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
 
-            lower_red = np.array([0,120,70])
-            upper_red = np.array([10,255,255])
+    if red_detected_now and not red_detected_before:
+        requests.post(API_URL, json={"cor": "vermelho",
+                                    "cameraId": "CAM_VICTOR.IA"
+                                    })
+    red_detected_before = red_detected_now
 
-            lower_verde = np.array([35, 100, 100])
-            upper_verde = np.array([85, 255, 255])  
+    if green_detected_now and not green_detected_before:
+        requests.post(API_URL, json={"cor": "verde",
+                                    "cameraId": "CAM_VICTOR.IA"
+                                    }, timeout=0.5)
+    green_detected_before = green_detected_now
 
-            color_mask = cv2.inRange(hsv, lower_red, upper_red)
-            color_mask_verde = cv2.inRange(hsv, lower_verde, upper_verde)
+    fg_mask_bgr = cv2.cvtColor(fg_mask, cv2.COLOR_GRAY2BGR)
+    cv2.imshow("test", frame)
 
-            red_detected_now = False
-            green_detected_now = False
+    if cv2.waitKey(1) == 27:
+        break
 
-
-            if cv2.countNonZero(color_mask) > 200:
-                red_detected_now = True
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-            elif cv2.countNonZero(color_mask_verde) > 200:
-                red_detected_now = True
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-        if red_detected_now and not red_detected_before:
-            requests.post(API_URL, json={"cor": "vermelho",
-                                        "cameraId": "CAM_VICTOR.IA"
-                                        })
-        red_detected_before = red_detected_now
-
-        if green_detected_now and not green_detected_before:
-            requests.post(API_URL, json={"cor": "verde",
-                                        "cameraId": "CAM_VICTOR.IA"
-                                        }, timeout=0.5)
-        green_detected_before = green_detected_now
-
-        fg_mask_bgr = cv2.cvtColor(fg_mask, cv2.COLOR_GRAY2BGR)
-        cv2.imshow("test", frame)
-
-        if cv2.waitKey(1) == 27:
-            break
-
-        ret, buffer = cv2.imencode('.jpg', frame)
-        frame_bytes = buffer.tobytes()
-
-        yield (b'--frame\r\n'   
-            b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        
-    # cap.release() 
-    # cv2.destroyAllWindows()
-
-@app.get('/webcam')
-def webcam():
-    return StreamingResponse(generate_frames(), media_type="multipart/x-mixed-replace; boundary=frame")
+cap.release()
+cv2.destroyAllWindows()
